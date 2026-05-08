@@ -1,0 +1,113 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme {
+  --font-display: var(--font-display), sans-serif;
+  --font-body: var(--font-body), sans-serif;
+  --font-mono: var(--font-mono), monospace;
+
+  --color-void: #050508;
+  --color-ink: #0c0c14;
+  --color-ink-2: #12121a;
+  --color-ink-3: #1e1e2d;
+
+  --color-violet-100: #e0e7ff;
+  --color-violet-300: #a5b4fc;
+  --color-violet-400: #818cf8;
+  --color-violet-500: #6366f1;
+  --color-violet-600: #4f46e5;
+  --color-violet-700: #4338ca;
+
+  --color-text-main: #f5f3ff;
+  --color-text-dim: #b8b4cc;
+  --color-text-mute: #6e6a86;
+
+  --color-success: #4ade80;
+  --color-warn: #fbbf24;
+  --color-danger: #f87171;
+}
+
+@layer utilities {
+  .text-shadow-neon {
+    text-shadow: 0 0 24px rgba(167, 139, 250, 0.55), 0 0 56px rgba(124, 58, 237, 0.35);
+  }
+}
+
+:root {
+  --line: rgba(167, 139, 250, 0.12);
+  --line-strong: rgba(167, 139, 250, 0.28);
+  --grad-violet: linear-gradient(135deg, #c4b5fd 0%, #8b5cf6 50%, #6d28d9 100%);
+  --neon-glow: 0 0 24px rgba(167, 139, 250, 0.55), 0 0 56px rgba(124, 58, 237, 0.35);
+}
+
+body {
+  background-color: var(--color-void);
+  color: var(--color-text-main);
+  overflow-x: hidden;
+}
+
+.bg-grid-overlay {
+  background-image: radial-gradient(rgba(79, 70, 229, 0.2) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.orb {
+  width: 180px; height: 180px; border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255,255,255,0.6) 0%, rgba(165,180,252,0.4) 30%, rgba(99,102,241,0.2) 60%, transparent 80%),
+    linear-gradient(to top right, var(--color-violet-600), #3b82f6, #a855f7);
+  box-shadow: 0 0 60px rgba(99,102,241,0.6), 0 0 120px rgba(79,70,229,0.4), inset 0 0 30px rgba(255,255,255,0.1);
+  animation: orb-breathe 4s ease-in-out infinite;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.orb::before, .orb::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  animation: orb-ring 3s ease-out infinite;
+}
+
+.orb::after {
+  animation-delay: 1.5s;
+}
+
+@keyframes orb-breathe { 
+  0%, 100% { transform: scale(1); } 
+  50% { transform: scale(1.05); } 
+}
+
+@keyframes orb-ring {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+.forma-card {
+  background: linear-gradient(145deg, rgba(139,92,246,0.12), rgba(139,92,246,0.02));
+  border: 1px solid var(--line-strong);
+  border-radius: 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+.forma-card::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 150px; height: 150px;
+  background: radial-gradient(circle at top right, rgba(139,92,246,0.15), transparent 70%);
+  pointer-events: none;
+}
+
+.eq-bar {
+  animation: eq-pulse 1.4s ease-in-out infinite;
+  transform-origin: bottom;
+}
+
+@keyframes eq-pulse {
+  0%, 100% { transform: scaleY(0.3); opacity: 0.5; }
+  50% { transform: scaleY(1); opacity: 1; }
+}
