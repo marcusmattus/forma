@@ -39,10 +39,13 @@ export default function Home() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-              <button className="px-8 py-4 bg-violet-600 text-white font-bold text-xs uppercase tracking-widest hover:bg-violet-500 transition-colors flex items-center justify-center gap-3">
+              <a
+                href="#voice"
+                className="px-8 py-4 bg-violet-600 text-white font-bold text-xs uppercase tracking-widest hover:bg-violet-500 transition-colors flex items-center justify-center gap-3"
+              >
                 <Mic size={18} strokeWidth={2.5} />
                 START VOICE ONBOARDING
-              </button>
+              </a>
               
               <button className="px-8 py-4 border border-white/20 text-white font-bold text-xs uppercase tracking-widest hover:bg-white/5 transition-colors inline-block">
                 See Documentation

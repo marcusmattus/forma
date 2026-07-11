@@ -75,6 +75,7 @@ export function BioDashboard() {
 
   return (
     <section
+      id="app"
       className="py-24 px-6 relative"
       style={{ backgroundColor: MOTIONOS_DESIGN_TOKENS.bgPrimary }}
     >
@@ -102,6 +103,40 @@ export function BioDashboard() {
               style={{ color: MOTIONOS_DESIGN_TOKENS.primaryPurple }}
             />
           </button>
+        </div>
+
+        {/* Today's Workout — voice-adapted plan */}
+        <div
+          className="rounded-2xl border p-8 mb-6"
+          style={{ backgroundColor: MOTIONOS_DESIGN_TOKENS.bgCard, borderColor: 'rgba(124,58,237,0.15)' }}
+        >
+          <h3 className="text-xs font-mono uppercase tracking-wider mb-3" style={{ color: MOTIONOS_DESIGN_TOKENS.textMute }}>
+            Today&apos;s Workout
+          </h3>
+          <p className="text-xl font-bold mb-1" style={{ color: MOTIONOS_DESIGN_TOKENS.textPrimary }}>
+            Push Strength
+          </p>
+          <p className="text-sm mb-5" style={{ color: MOTIONOS_DESIGN_TOKENS.textDim }}>
+            45 min · Bench Press · Overhead Press · Dips
+          </p>
+          <button
+            className="w-full py-3 rounded-xl font-bold text-xs uppercase tracking-widest"
+            style={{ backgroundColor: MOTIONOS_DESIGN_TOKENS.primaryPurple, color: MOTIONOS_DESIGN_TOKENS.textPrimary }}
+          >
+            Start Workout
+          </button>
+        </div>
+
+        <div className="flex flex-wrap gap-2 mb-8 justify-center">
+          {['Voice First', 'Vision Tracking', 'AI Coaching', 'Real-Time Feedback'].map((p) => (
+            <span
+              key={p}
+              className="text-[9px] font-mono uppercase tracking-wider px-3 py-1.5 rounded-full border"
+              style={{ borderColor: 'rgba(124,58,237,0.2)', color: MOTIONOS_DESIGN_TOKENS.textMute }}
+            >
+              {p}
+            </span>
+          ))}
         </div>
 
         {/* Recovery Dashboard — 4 ring gauges */}
@@ -186,6 +221,7 @@ export function BioDashboard() {
 
         {/* AI Coach screen mock — waveform + voice */}
         <div
+          id="voice"
           className="rounded-2xl border p-8 text-center relative overflow-hidden"
           style={{ backgroundColor: MOTIONOS_DESIGN_TOKENS.bgCard, borderColor: 'rgba(124,58,237,0.15)' }}
         >
