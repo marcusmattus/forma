@@ -5,6 +5,7 @@
 
 export type AgentId =
   | 'hermes-fitness-supervisor'
+  | 'context-router'
   | 'bio-modeling-supervisor'
   | 'ingestion-normalization'
   | 'digital-twin-modeler'

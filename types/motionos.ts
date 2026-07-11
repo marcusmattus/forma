@@ -3,13 +3,9 @@
  * Mirrors schemas/motionos-bio-tracking.schema.json
  */
 
-export type WisprIntent =
-  | 'im_sore'
-  | 'traveling_this_week'
-  | 'only_20_minutes'
-  | 'knee_hurts'
-  | 'feeling_low_energy'
-  | 'unknown';
+import type { WisprIntent } from '@/types/wispr';
+
+export type { WisprIntent };
 
 export type MenstrualPhase = 'follicular' | 'ovulation' | 'luteal' | 'menstrual' | null;
 

@@ -128,9 +128,9 @@ export async function getProactiveCoaching(
   });
 }
 
-/** Map expanded intents to legacy WisprIntent for proofing/memory compat */
-function mapToLegacyIntent(intentId: string): import('@/types/motionos').WisprIntent {
-  const map: Record<string, import('@/types/motionos').WisprIntent> = {
+/** Map expanded intents to legacy adaptation specs */
+function mapToLegacyIntent(intentId: string): import('@/types/wispr').WisprIntent {
+  const map: Record<string, import('@/types/wispr').WisprIntent> = {
     im_sore: 'im_sore',
     knee_hurts: 'knee_hurts',
     back_tight: 'im_sore',

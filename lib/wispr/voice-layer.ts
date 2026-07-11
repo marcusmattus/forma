@@ -3,8 +3,13 @@
  * MotionOS / Hermes Fit
  */
 
-import type { WisprIntent } from '@/types/motionos';
+import type { WisprIntent } from '@/types/wispr';
 import type { AdaptationRecommendation, BioReading } from '@/types/bio';
+
+type LegacyVoiceIntent = Extract<
+  WisprIntent,
+  'im_sore' | 'traveling_this_week' | 'only_20_minutes' | 'knee_hurts' | 'feeling_low_energy'
+>;
 
 export interface WisprIntentMatch {
   intent: WisprIntent;
@@ -22,7 +27,7 @@ export interface WisprAdaptationSpec {
 }
 
 const INTENT_PATTERNS: Record<
-  Exclude<WisprIntent, 'unknown'>,
+  LegacyVoiceIntent,
   { keywords: string[]; bodyParts?: string[]; timePatterns?: RegExp[] }
 > = {
   im_sore: {
@@ -44,7 +49,7 @@ const INTENT_PATTERNS: Record<
   },
 };
 
-const WISPR_ADAPTATION_MAP: Record<Exclude<WisprIntent, 'unknown'>, WisprAdaptationSpec> = {
+const WISPR_ADAPTATION_MAP: Record<LegacyVoiceIntent, WisprAdaptationSpec> = {
   im_sore: {
     intent: 'im_sore',
     adaptations: [
@@ -167,7 +172,7 @@ export function detectWisprIntent(transcript: string): WisprIntentMatch {
   let bestMatch: WisprIntentMatch = { intent: 'unknown', confidence: 0, matchedKeywords: [] };
 
   for (const [intent, pattern] of Object.entries(INTENT_PATTERNS) as Array<
-    [Exclude<WisprIntent, 'unknown'>, (typeof INTENT_PATTERNS)[keyof typeof INTENT_PATTERNS]]
+    [LegacyVoiceIntent, (typeof INTENT_PATTERNS)[LegacyVoiceIntent]]
   >) {
     const matched = pattern.keywords.filter((kw) => lower.includes(kw));
     if (matched.length === 0) continue;
@@ -190,7 +195,7 @@ export function detectWisprIntent(transcript: string): WisprIntentMatch {
 
 export function getWisprAdaptations(intent: WisprIntent): WisprAdaptationSpec | null {
   if (intent === 'unknown') return null;
-  return WISPR_ADAPTATION_MAP[intent];
+  return WISPR_ADAPTATION_MAP[intent as LegacyVoiceIntent] ?? null;
 }
 
 export function buildWisprVoiceLayer(
