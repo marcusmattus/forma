@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { processVoiceAdaptation, getBioDashboard } from '@/lib/bio/engine';
+import { getBioDashboard } from '@/lib/bio/engine';
+import { buildMotionOSDocument } from '@/lib/bio/document';
+import { processWisprVoice, MEDICAL_DISCLAIMER } from '@/lib/wispr/pipeline';
 import type { AgentTier } from '@/types/agent';
 
 export async function GET(request: NextRequest) {
@@ -14,8 +16,10 @@ export async function GET(request: NextRequest) {
     }
 
     const result = await getBioDashboard(clientId, tier, audience);
+    const document = buildMotionOSDocument(result.context, { trace: result.trace });
 
     return NextResponse.json({
+      document,
       insights: result.context.insights,
       predictions: result.context.predictions,
       anomalies: result.context.anomalies,
@@ -40,20 +44,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await processVoiceAdaptation(
-      { clientId, transcript, sessionId: sessionId ?? `voice_${Date.now()}` },
-      tier ?? 'free'
+    const result = await processWisprVoice(
+      { clientId, transcript, sessionId: sessionId ?? `wispr_${Date.now()}` },
+      tier ?? 'pro'
     );
 
     return NextResponse.json({
       success: true,
-      adaptations: result.context.adaptations,
-      insights: result.context.insights,
-      actions: result.downstreamActions,
-      trace: result.trace,
+      document: result.document,
+      spokenFeedback: result.spokenFeedback,
+      intent: result.intent,
+      confidence: result.confidence,
+      adaptations: result.document.adaptation_log,
+      downstreamActions: result.document.downstream_actions,
+      medicalDisclaimer: MEDICAL_DISCLAIMER,
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Voice adaptation failed';
+    const message = err instanceof Error ? err.message : 'Wispr voice adaptation failed';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

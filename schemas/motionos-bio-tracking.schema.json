@@ -1,0 +1,364 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://motionos.ai/schemas/bio-tracking/v1.0",
+  "title": "MotionOS_BioTracking_v1.0",
+  "description": "Core data contract for MotionOS Bio Tracking & Agentic Side Modeling layer",
+  "type": "object",
+  "required": ["system", "client_id", "timestamp", "bio_profile", "digital_twin"],
+  "properties": {
+    "system": {
+      "type": "string",
+      "const": "MotionOS_BioTracking_v1.0"
+    },
+    "client_id": { "type": "string", "minLength": 1 },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "orchestration": {
+      "type": "object",
+      "properties": {
+        "layer": { "type": "string", "const": "Hermes" },
+        "supervisor": { "type": "string", "const": "BioModelingSupervisor" },
+        "main_orchestrator": { "type": "string", "const": "FitnessSupervisor" },
+        "memory_store": { "type": "string", "const": "HermesLongTermMemory" },
+        "context_sharing": { "type": "string", "enum": ["structured_context_passing"] },
+        "correlation_id": { "type": "string" },
+        "pipeline_status": { "type": "string", "enum": ["idle", "running", "completed", "failed", "escalated"] }
+      }
+    },
+    "voice_layer": {
+      "type": "object",
+      "properties": {
+        "provider": { "type": "string", "const": "Wispr" },
+        "session_id": { "type": "string" },
+        "transcript": { "type": "string" },
+        "detected_intent": { "$ref": "#/definitions/WisprIntent" },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "spoken_feedback": { "type": "string" },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "natural_language_updates",
+              "real_time_adaptation_triggers",
+              "spoken_coaching_feedback",
+              "intent_detection"
+            ]
+          }
+        }
+      }
+    },
+    "bio_profile": { "$ref": "#/definitions/BioProfile" },
+    "digital_twin": { "$ref": "#/definitions/DigitalTwin" },
+    "adaptation_log": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/AdaptationLogEntry" }
+    },
+    "fitness_proofing": { "$ref": "#/definitions/FitnessProofing" },
+    "downstream_actions": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/DownstreamAction" }
+    }
+  },
+  "definitions": {
+    "WisprIntent": {
+      "type": "string",
+      "enum": [
+        "im_sore",
+        "traveling_this_week",
+        "only_20_minutes",
+        "knee_hurts",
+        "feeling_low_energy",
+        "unknown"
+      ]
+    },
+    "BioProfile": {
+      "type": "object",
+      "properties": {
+        "structural": {
+          "type": "object",
+          "properties": {
+            "weight_kg": { "type": "number" },
+            "body_fat_pct": { "type": "number" },
+            "muscle_mass_kg": { "type": "number" },
+            "measurements": {
+              "type": "object",
+              "additionalProperties": { "type": "number" }
+            },
+            "progress_photos": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "url": { "type": "string" },
+                  "captured_at": { "type": "string", "format": "date-time" },
+                  "body_comp_delta_pct": { "type": "number" }
+                }
+              }
+            }
+          }
+        },
+        "performance": {
+          "type": "object",
+          "properties": {
+            "strength_trend": { "type": "number", "minimum": -100, "maximum": 100 },
+            "weekly_volume_sets": { "type": "number" },
+            "avg_rpe": { "type": "number", "minimum": 1, "maximum": 10 },
+            "volume_tolerance_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+            "recent_prs": { "type": "array", "items": { "type": "string" } },
+            "plateau_risk_pct": { "type": "number", "minimum": 0, "maximum": 100 }
+          }
+        },
+        "recovery": {
+          "type": "object",
+          "properties": {
+            "hrv": { "type": "number", "minimum": 0 },
+            "hrv_baseline": { "type": "number" },
+            "sleep_score": { "type": "number", "minimum": 0, "maximum": 100 },
+            "sleep_duration_hours": { "type": "number" },
+            "sleep_debt_hours": { "type": "number", "minimum": 0 },
+            "soreness": { "type": "number", "minimum": 0, "maximum": 10 },
+            "stress": { "type": "number", "minimum": 0, "maximum": 10 },
+            "resting_hr": { "type": "number" },
+            "recovery_score": { "type": "number", "minimum": 0, "maximum": 100 },
+            "readiness_score": { "type": "number", "minimum": 0, "maximum": 100 }
+          }
+        },
+        "metabolic": {
+          "type": "object",
+          "properties": {
+            "estimated_tdee_kcal": { "type": "number" },
+            "caloric_balance": { "type": "number" },
+            "macro_adherence_pct": { "type": "number" },
+            "hydration_level_pct": { "type": "number" }
+          }
+        },
+        "contextual": {
+          "type": "object",
+          "properties": {
+            "injuries": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/InjuryRecord" }
+            },
+            "travel": { "type": "boolean" },
+            "menstrual_phase": {
+              "type": ["string", "null"],
+              "enum": ["follicular", "ovulation", "luteal", "menstrual", null]
+            },
+            "voice_notes": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "transcript": { "type": "string" },
+                  "intent": { "$ref": "#/definitions/WisprIntent" },
+                  "recorded_at": { "type": "string", "format": "date-time" }
+                }
+              }
+            },
+            "active_constraints": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Constraint" }
+            }
+          }
+        }
+      }
+    },
+    "InjuryRecord": {
+      "type": "object",
+      "required": ["body_part", "severity"],
+      "properties": {
+        "id": { "type": "string" },
+        "body_part": { "type": "string" },
+        "severity": { "type": "string", "enum": ["low", "medium", "high"] },
+        "detected_at": { "type": "string", "format": "date-time" },
+        "source": { "type": "string", "enum": ["anomaly", "voice", "coach", "self_report"] },
+        "resolved": { "type": "boolean" },
+        "restricted_movements": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "Constraint": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["injury", "travel", "equipment", "time", "preference", "medical"] },
+        "description": { "type": "string" },
+        "active": { "type": "boolean" },
+        "expires_at": { "type": "string", "format": "date-time" },
+        "source": { "type": "string" }
+      }
+    },
+    "DigitalTwin": {
+      "type": "object",
+      "properties": {
+        "status": { "type": "string", "enum": ["active", "stale", "initializing", "halted"] },
+        "version": { "type": "integer", "minimum": 1 },
+        "last_synced": { "type": "string", "format": "date-time" },
+        "model_confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "unified_scores": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/UnifiedScore" }
+        },
+        "predictions": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Prediction" }
+        },
+        "simulations": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/WhatIfSimulation" }
+        },
+        "trends": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/TrendVector" }
+        }
+      }
+    },
+    "UnifiedScore": {
+      "type": "object",
+      "required": ["key", "value", "confidence"],
+      "properties": {
+        "key": {
+          "type": "string",
+          "enum": [
+            "recovery_score", "load_score", "body_comp_delta",
+            "readiness_score", "sleep_quality_score", "stress_load_score",
+            "performance_trend", "overtraining_risk", "supercompensation_window"
+          ]
+        },
+        "value": { "type": "number" },
+        "scale": { "type": "string", "enum": ["0-100", "delta", "trend"] },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "explanation": { "type": "string" },
+        "computed_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "TrendVector": {
+      "type": "object",
+      "properties": {
+        "slope": { "type": "number" },
+        "direction": { "type": "string", "enum": ["improving", "stable", "declining"] },
+        "window_days": { "type": "integer" },
+        "confidence": { "type": "number" }
+      }
+    },
+    "Prediction": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "type": {
+          "type": "string",
+          "enum": ["plateau", "overtraining", "supercompensation", "body_comp_change", "performance_trend", "injury_risk"]
+        },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "timeline": { "type": "string" },
+        "description": { "type": "string" },
+        "actionable_by": { "type": "string", "enum": ["client", "coach", "system"] },
+        "recommended_actions": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "WhatIfSimulation": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "changes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "variable": { "type": "string" },
+              "current_value": { "type": "number" },
+              "proposed_value": { "type": "number" },
+              "duration_days": { "type": "integer" }
+            }
+          }
+        },
+        "projected_outcome": { "type": "object" },
+        "confidence": { "type": "number" },
+        "influences_agents": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["workout-programming", "nutrition", "habit-coach"] }
+        }
+      }
+    },
+    "AdaptationLogEntry": {
+      "type": "object",
+      "required": ["id", "type", "applied_at"],
+      "properties": {
+        "id": { "type": "string" },
+        "type": {
+          "type": "string",
+          "enum": ["volume", "intensity", "exercise_swap", "deload", "nutrition", "recovery", "schedule"]
+        },
+        "description": { "type": "string" },
+        "magnitude": { "type": "string", "enum": ["minor", "moderate", "major"] },
+        "trigger": { "type": "string", "enum": ["voice_intent", "hrv_drop", "soreness_spike", "prediction", "coach_override", "anomaly"] },
+        "voice_intent": { "$ref": "#/definitions/WisprIntent" },
+        "auto_applied": { "type": "boolean" },
+        "requires_coach_approval": { "type": "boolean" },
+        "coach_approved": { "type": ["boolean", "null"] },
+        "applied_at": { "type": "string", "format": "date-time" },
+        "affected_domains": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["workout", "nutrition", "recovery", "habits"] }
+        },
+        "safety_check_passed": { "type": "boolean" },
+        "medical_disclaimer_shown": { "type": "boolean" },
+        "rationale": { "type": "string" }
+      }
+    },
+    "FitnessProofing": {
+      "type": "object",
+      "properties": {
+        "safety_mechanisms": {
+          "type": "object",
+          "properties": {
+            "human_coach_override": { "type": "boolean" },
+            "medical_disclaimer_on_adaptations": { "type": "boolean" },
+            "progressive_overload_limits": {
+              "type": "object",
+              "properties": {
+                "max_weekly_volume_increase_pct": { "type": "number", "default": 10 },
+                "max_intensity_increase_pct": { "type": "number", "default": 5 }
+              }
+            },
+            "injury_history_weighting": { "type": "number", "minimum": 0, "maximum": 1 }
+          }
+        },
+        "robustness": {
+          "type": "object",
+          "properties": {
+            "offline_mode_fallback": { "type": "boolean" },
+            "data_validation": { "type": "boolean" },
+            "multi_source_cross_checking": { "type": "boolean" },
+            "confidence_scoring_on_all_predictions": { "type": "boolean" }
+          }
+        },
+        "halt_training": { "type": "boolean" },
+        "blocked_adaptations": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "DownstreamAction": {
+      "type": "object",
+      "properties": {
+        "target_agent": {
+          "type": "string",
+          "enum": ["workout-programming", "nutrition", "habit-coach", "progress-analyst", "builder-studio", "coach"]
+        },
+        "action_type": { "type": "string" },
+        "payload": { "type": "object" },
+        "priority": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+        "requires_approval": { "type": "boolean" }
+      }
+    },
+    "HermesAgent": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "hermes_role": { "type": "string" },
+        "wispr_support": { "type": "boolean" },
+        "outputs_to": { "type": "array", "items": { "type": "string" } },
+        "triggers": { "type": "array", "items": { "type": "string" } },
+        "actions": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

@@ -1,111 +1,44 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Activity, Moon, Footprints, Heart, Mic, RefreshCw } from 'lucide-react';
+import { Activity, Heart, Moon, RefreshCw, Footprints } from 'lucide-react';
+import { RecoveryGauge, AdaptationCard, VoiceButton, BioTrendsChart } from '@/components/motionos';
+import { MOTIONOS_DESIGN_TOKENS } from '@/types/motionos';
+import type { MotionOSBioDocument } from '@/types/motionos';
 
-interface UnifiedScore {
-  key: string;
-  value: number;
-  explanation: string;
-  confidence: number;
-}
-
-interface BioInsight {
-  id: string;
-  title: string;
-  body: string;
-  category: string;
-}
-
-interface TwinResponse {
-  twin: {
-    recovery: { readinessScore: number; sleepDebtHours: number; sorenessLevel: number };
-    unifiedScores: UnifiedScore[];
-  };
-  insights: BioInsight[];
-}
-
-const SCORE_CONFIG: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
-  recovery_score: { label: 'Recovery', icon: <Heart className="w-4 h-4" />, color: '#22C55E' },
-  load_score: { label: 'Workouts', icon: <Activity className="w-4 h-4" />, color: '#7C3AED' },
-  sleep_quality_score: { label: 'Sleep', icon: <Moon className="w-4 h-4" />, color: '#22D3EE' },
-  overtraining_risk: { label: 'Risk', icon: <Footprints className="w-4 h-4" />, color: '#F59E0B' },
+const GAUGE_CONFIG: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
+  recovery_score: { label: 'Recovery', icon: <Heart className="w-3.5 h-3.5" />, color: MOTIONOS_DESIGN_TOKENS.successGreen },
+  load_score: { label: 'Workouts', icon: <Activity className="w-3.5 h-3.5" />, color: MOTIONOS_DESIGN_TOKENS.primaryPurple },
+  overtraining_risk: { label: 'Risk', icon: <Footprints className="w-3.5 h-3.5" />, color: MOTIONOS_DESIGN_TOKENS.warnAmber },
 };
 
-function ProgressRing({
-  value,
-  label,
-  icon,
-  color,
-  size = 80,
-}: {
-  value: number;
-  label: string;
-  icon: React.ReactNode;
-  color: string;
-  size?: number;
-}) {
-  const stroke = 6;
-  const radius = (size - stroke) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (value / 100) * circumference;
-
-  return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="relative" style={{ width: size, height: size }}>
-        <svg width={size} height={size} className="-rotate-90">
-          <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            fill="none"
-            stroke="rgba(124,58,237,0.15)"
-            strokeWidth={stroke}
-          />
-          <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            fill="none"
-            stroke={color}
-            strokeWidth={stroke}
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
-            strokeLinecap="round"
-            className="transition-all duration-700"
-          />
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-lg font-bold text-white">{value}</span>
-        </div>
-      </div>
-      <div className="flex items-center gap-1 text-xs text-[var(--color-text-dim)]">
-        {icon}
-        <span>{label}</span>
-      </div>
-    </div>
-  );
-}
+const WEEKLY_MOCK = [
+  { label: 'Mon', value: 72 },
+  { label: 'Tue', value: 85 },
+  { label: 'Wed', value: 45 },
+  { label: 'Thu', value: 78 },
+  { label: 'Fri', value: 90 },
+  { label: 'Sat', value: 60 },
+  { label: 'Sun', value: 76 },
+];
 
 async function seedDemoData() {
   await fetch('/api/bio/demo', { method: 'POST' });
 }
 
 export function BioDashboard() {
-  const [data, setData] = useState<TwinResponse | null>(null);
+  const [document, setDocument] = useState<MotionOSBioDocument | null>(null);
   const [loading, setLoading] = useState(true);
-  const [voiceInput, setVoiceInput] = useState('');
-  const [voiceResult, setVoiceResult] = useState<string | null>(null);
+  const [voiceProcessing, setVoiceProcessing] = useState(false);
+  const [spokenFeedback, setSpokenFeedback] = useState<string | null>(null);
 
   const loadDashboard = async () => {
     setLoading(true);
     try {
       const res = await fetch('/api/bio/twin?clientId=demo_client&tier=pro');
       const json = await res.json();
-      if (json.twin) setData(json as TwinResponse);
-    } catch {
-      /* demo fallback */
-    }
+      if (json.document) setDocument(json.document);
+    } catch { /* demo fallback */ }
     setLoading(false);
   };
 
@@ -113,61 +46,80 @@ export function BioDashboard() {
     seedDemoData().then(loadDashboard);
   }, []);
 
-  const handleVoice = async () => {
-    if (!voiceInput.trim()) return;
-    const res = await fetch('/api/bio/insights', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        clientId: 'demo_client',
-        transcript: voiceInput,
-        tier: 'pro',
-      }),
-    });
-    const json = await res.json();
-    const adaptations = json.adaptations?.map((a: { description: string }) => a.description).join('; ');
-    setVoiceResult(adaptations ?? 'No adaptations triggered');
-    setVoiceInput('');
-    loadDashboard();
+  const handleVoice = async (transcript: string) => {
+    setVoiceProcessing(true);
+    try {
+      const res = await fetch('/api/bio/insights', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clientId: 'demo_client',
+          transcript,
+          tier: 'pro',
+        }),
+      });
+      const json = await res.json();
+      if (json.document) setDocument(json.document);
+      setSpokenFeedback(json.spokenFeedback ?? null);
+    } finally {
+      setVoiceProcessing(false);
+    }
   };
 
-  const scores = data?.twin?.unifiedScores ?? [];
+  const scores = document?.digital_twin.unified_scores ?? [];
+  const adaptations = document?.adaptation_log ?? [];
 
   return (
-    <section className="py-24 px-6">
+    <section
+      className="py-24 px-6 relative"
+      style={{ backgroundColor: MOTIONOS_DESIGN_TOKENS.bgPrimary }}
+    >
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <p className="text-sm text-[var(--color-violet-400)] font-mono uppercase tracking-widest mb-2">
-              Bio Tracking · Digital Twin
+            <p
+              className="text-sm font-mono uppercase tracking-widest mb-2"
+              style={{ color: MOTIONOS_DESIGN_TOKENS.primaryPurple }}
+            >
+              MotionOS · Bio Tracking · Hermes + Wispr
             </p>
-            <h2 className="text-3xl font-bold text-white">Today&apos;s Plan</h2>
+            <h2 className="text-3xl font-bold" style={{ color: MOTIONOS_DESIGN_TOKENS.textPrimary }}>
+              Hey Alex — Today&apos;s Plan
+            </h2>
           </div>
           <button
             onClick={loadDashboard}
-            className="p-2 rounded-lg border border-[var(--line)] hover:border-[var(--line-strong)] transition-colors"
+            className="p-2 rounded-lg border transition-colors"
+            style={{ borderColor: 'rgba(124,58,237,0.2)' }}
             aria-label="Refresh"
           >
-            <RefreshCw className={`w-5 h-5 text-[var(--color-violet-400)] ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`}
+              style={{ color: MOTIONOS_DESIGN_TOKENS.primaryPurple }}
+            />
           </button>
         </div>
 
-        <div className="rounded-2xl border border-[var(--line)] bg-[var(--color-ink)] p-8 mb-6">
-          <h3 className="text-sm font-mono text-[var(--color-text-mute)] uppercase tracking-wider mb-6">
+        {/* Recovery Dashboard — 4 ring gauges */}
+        <div
+          className="rounded-2xl border p-8 mb-6"
+          style={{ backgroundColor: MOTIONOS_DESIGN_TOKENS.bgCard, borderColor: 'rgba(124,58,237,0.15)' }}
+        >
+          <h3 className="text-xs font-mono uppercase tracking-wider mb-6" style={{ color: MOTIONOS_DESIGN_TOKENS.textMute }}>
             Daily Progress
           </h3>
           <div className="flex justify-around flex-wrap gap-6">
             {scores.length > 0 ? (
-              scores.map((score) => {
-                const config = SCORE_CONFIG[score.key] ?? {
+              scores.slice(0, 4).map((score) => {
+                const config = GAUGE_CONFIG[score.key] ?? {
                   label: score.key,
-                  icon: <Activity className="w-4 h-4" />,
-                  color: '#7C3AED',
+                  icon: <Moon className="w-3.5 h-3.5" />,
+                  color: MOTIONOS_DESIGN_TOKENS.accentCyan,
                 };
                 return (
-                  <ProgressRing
+                  <RecoveryGauge
                     key={score.key}
-                    value={score.value}
+                    value={Math.round(score.value)}
                     label={config.label}
                     icon={config.icon}
                     color={config.color}
@@ -175,50 +127,82 @@ export function BioDashboard() {
                 );
               })
             ) : (
-              <p className="text-[var(--color-text-mute)]">Loading bio data...</p>
+              <p style={{ color: MOTIONOS_DESIGN_TOKENS.textMute }}>Syncing digital twin...</p>
             )}
           </div>
         </div>
 
-        {data?.insights && data.insights.length > 0 && (
-          <div className="rounded-2xl border border-[var(--line)] bg-[var(--color-ink)] p-6 mb-6">
-            <h3 className="text-sm font-mono text-[var(--color-text-mute)] uppercase tracking-wider mb-4">
-              AI Coach Summary
+        {/* Weekly trends bar chart */}
+        <div className="mb-6">
+          <BioTrendsChart title="Weekly Recovery Trend" data={WEEKLY_MOCK} color={MOTIONOS_DESIGN_TOKENS.successGreen} />
+        </div>
+
+        {/* AI Coach spoken feedback */}
+        {spokenFeedback && (
+          <div
+            className="rounded-2xl border p-6 mb-6"
+            style={{ backgroundColor: `${MOTIONOS_DESIGN_TOKENS.primaryPurple}10`, borderColor: 'rgba(124,58,237,0.25)' }}
+          >
+            <h3 className="text-xs font-mono uppercase tracking-wider mb-3" style={{ color: MOTIONOS_DESIGN_TOKENS.accentCyan }}>
+              AI Coach (Wispr)
             </h3>
-            {data.insights.slice(0, 3).map((insight) => (
-              <div key={insight.id} className="mb-3 last:mb-0">
-                <p className="text-sm font-medium text-[var(--color-violet-300)]">{insight.title}</p>
-                <p className="text-sm text-[var(--color-text-dim)]">{insight.body}</p>
-              </div>
-            ))}
+            <p className="text-sm italic" style={{ color: MOTIONOS_DESIGN_TOKENS.textDim }}>
+              &ldquo;{spokenFeedback}&rdquo;
+            </p>
           </div>
         )}
 
-        <div className="rounded-2xl border border-[var(--line)] bg-[var(--color-ink)] p-6">
-          <h3 className="text-sm font-mono text-[var(--color-text-mute)] uppercase tracking-wider mb-4">
-            Voice Adaptation (Wispr)
-          </h3>
-          <div className="flex gap-3">
-            <input
-              type="text"
-              value={voiceInput}
-              onChange={(e) => setVoiceInput(e.target.value)}
-              placeholder={"Try: \"I'm sore and only have 20 minutes\""}
-              className="flex-1 bg-[var(--color-ink-2)] border border-[var(--line)] rounded-lg px-4 py-3 text-sm text-white placeholder:text-[var(--color-text-mute)] focus:outline-none focus:border-[var(--color-violet-500)]"
-            />
-            <button
-              onClick={handleVoice}
-              className="px-4 py-3 rounded-lg bg-[var(--color-violet-600)] hover:bg-[var(--color-violet-500)] transition-colors flex items-center gap-2 text-white text-sm font-medium"
-            >
-              <Mic className="w-4 h-4" />
-              Speak
-            </button>
+        {/* Adaptation suggestions */}
+        {adaptations.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-xs font-mono uppercase tracking-wider mb-4" style={{ color: MOTIONOS_DESIGN_TOKENS.textMute }}>
+              Adaptation Suggestions
+            </h3>
+            <div className="grid gap-3">
+              {adaptations.slice(0, 3).map((a) => (
+                <AdaptationCard
+                  key={a.id}
+                  type={a.type}
+                  description={a.description}
+                  magnitude={a.magnitude}
+                  autoApply={a.auto_applied}
+                  requiresCoachApproval={a.requires_coach_approval}
+                  rationale={a.rationale}
+                  medicalDisclaimer={a.medical_disclaimer_shown ? 'Coaching suggestion, not medical advice.' : undefined}
+                />
+              ))}
+            </div>
           </div>
-          {voiceResult && (
-            <p className="mt-3 text-sm text-[var(--color-success)]">→ {voiceResult}</p>
-          )}
+        )}
+
+        {/* AI Coach screen mock — waveform + voice */}
+        <div
+          className="rounded-2xl border p-8 text-center relative overflow-hidden"
+          style={{ backgroundColor: MOTIONOS_DESIGN_TOKENS.bgCard, borderColor: 'rgba(124,58,237,0.15)' }}
+        >
+          <div
+            className="absolute inset-0 opacity-20"
+            style={{
+              background: `radial-gradient(circle at center, ${MOTIONOS_DESIGN_TOKENS.primaryPurple}40, transparent 70%)`,
+            }}
+          />
+          <h3 className="text-xs font-mono uppercase tracking-wider mb-2 relative" style={{ color: MOTIONOS_DESIGN_TOKENS.textMute }}>
+            Talk to Coach
+          </h3>
+          <p className="text-sm mb-6 relative" style={{ color: MOTIONOS_DESIGN_TOKENS.textDim }}>
+            I&apos;m your AI Coach. How can I help you today?
+          </p>
+          <div className="flex justify-center relative">
+            <div className="orb scale-50 mb-4" />
+          </div>
+          <p className="text-[10px] font-mono uppercase tracking-widest mb-6 relative" style={{ color: MOTIONOS_DESIGN_TOKENS.textMute }}>
+            Tap to speak
+          </p>
+          <VoiceButton onTranscript={handleVoice} isProcessing={voiceProcessing} size="lg" />
         </div>
       </div>
+
+      <VoiceButton onTranscript={handleVoice} isProcessing={voiceProcessing} floating />
     </section>
   );
 }
