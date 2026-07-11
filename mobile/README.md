@@ -2,7 +2,15 @@
 
 Bio Tracking demo app for the Hermes Buildathon.
 
-## Run with Expo Go Tunnel
+## Expo Go Compatibility
+
+This app uses **Expo SDK 54** to match the App Store / Play Store version of Expo Go.
+
+If you see *"Project is incompatible with this version of Expo Go"*:
+- Update Expo Go from the App Store / Play Store, **or**
+- Ensure this project stays on SDK 54 (`expo ~54.0.0` in `package.json`)
+
+SDK 57+ requires a newer Expo Go that may not yet be on the App Store.
 
 ```bash
 # 1. Start the Next.js API (from repo root)
