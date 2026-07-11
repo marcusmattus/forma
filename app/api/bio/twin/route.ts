@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getBioDashboard } from '@/lib/bio/engine';
+import { buildMotionOSDocument } from '@/lib/bio/document';
 import type { AgentTier } from '@/types/agent';
 
 export async function GET(request: NextRequest) {
@@ -13,8 +14,10 @@ export async function GET(request: NextRequest) {
     }
 
     const result = await getBioDashboard(clientId, tier, 'client');
+    const document = buildMotionOSDocument(result.context, { trace: result.trace });
 
     return NextResponse.json({
+      document,
       twin: result.context.twin,
       unifiedScores: result.context.twin.unifiedScores,
       insights: result.context.insights,

@@ -1,0 +1,131 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://motionos.ai/schemas/hermes-context-router/v1.0",
+  "title": "HermesContextRouter_v1.0",
+  "description": "Context Router decision object for MotionOS Hermes Integration Layer",
+  "type": "object",
+  "required": ["system", "decision_id", "correlation_id", "enriched_context", "routing", "safety"],
+  "properties": {
+    "system": { "type": "string", "const": "HermesContextRouter_v1.0" },
+    "decision_id": { "type": "string" },
+    "correlation_id": { "type": "string" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "enriched_context": { "$ref": "#/definitions/EnrichedHermesContext" },
+    "routing": { "$ref": "#/definitions/RoutingPlan" },
+    "safety": { "$ref": "#/definitions/SafetyGate" },
+    "conflicts_resolved": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/ConflictRecord" }
+    },
+    "multimodal_handoff": { "$ref": "#/definitions/MultimodalHandoff" },
+    "observability": { "$ref": "#/definitions/Observability" }
+  },
+  "definitions": {
+    "EnrichedHermesContext": {
+      "type": "object",
+      "required": ["correlation_id", "client_id", "session_id", "tier", "input_modality", "memory", "bio_state"],
+      "properties": {
+        "correlation_id": { "type": "string" },
+        "client_id": { "type": "string" },
+        "session_id": { "type": "string" },
+        "tier": { "type": "string", "enum": ["free", "pro", "coach", "enterprise"] },
+        "trigger": { "type": "string" },
+        "input_modality": {
+          "type": "string",
+          "enum": ["voice", "wearable", "photo", "video", "manual", "text", "touch"]
+        },
+        "detected_intent": { "type": "string" },
+        "intent_confidence": { "type": "number" },
+        "memory": { "$ref": "#/definitions/MemorySnapshot" },
+        "bio_state": { "$ref": "#/definitions/BioStateSnapshot" },
+        "coach_override": { "type": "boolean" },
+        "mode": { "type": "string", "enum": ["client", "coach"] }
+      }
+    },
+    "MemorySnapshot": {
+      "type": "object",
+      "properties": {
+        "snippets": { "type": "array", "items": { "type": "string" } },
+        "injury_flags": { "type": "array" },
+        "active_constraints": { "type": "array" },
+        "preferences": { "type": "object" },
+        "adaptation_history_count": { "type": "integer" }
+      }
+    },
+    "BioStateSnapshot": {
+      "type": "object",
+      "properties": {
+        "recovery_score": { "type": "number" },
+        "load_score": { "type": "number" },
+        "overtraining_risk": { "type": "number" },
+        "hrv": { "type": "number" },
+        "sleep_debt_hours": { "type": "number" },
+        "soreness_level": { "type": "number" },
+        "twin_version": { "type": "integer" }
+      }
+    },
+    "RoutingPlan": {
+      "type": "object",
+      "properties": {
+        "primary_supervisor": {
+          "type": "string",
+          "enum": ["bio-modeling-supervisor", "hermes-fitness-supervisor"]
+        },
+        "agent_routes": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/AgentRoute" }
+        },
+        "execution_plan": {
+          "type": "string",
+          "enum": ["sequential", "parallel_bio_then_peers", "peer_only"]
+        }
+      }
+    },
+    "AgentRoute": {
+      "type": "object",
+      "required": ["agent_id", "priority", "reason"],
+      "properties": {
+        "agent_id": { "type": "string" },
+        "priority": { "type": "string", "enum": ["critical", "high", "normal", "low", "deferred"] },
+        "reason": { "type": "string" },
+        "parallel_group": { "type": "integer" }
+      }
+    },
+    "SafetyGate": {
+      "type": "object",
+      "properties": {
+        "passed": { "type": "boolean" },
+        "halt_training": { "type": "boolean" },
+        "requires_coach_approval": { "type": "boolean" },
+        "blocked_actions": { "type": "array", "items": { "type": "string" } },
+        "medical_disclaimer_required": { "type": "boolean" },
+        "injury_aware_routing": { "type": "boolean" },
+        "confidence_floor": { "type": "number" }
+      }
+    },
+    "ConflictRecord": {
+      "type": "object",
+      "properties": {
+        "agents": { "type": "array", "items": { "type": "string" } },
+        "conflict_type": { "type": "string" },
+        "resolution": { "type": "string" },
+        "rationale": { "type": "string" }
+      }
+    },
+    "MultimodalHandoff": {
+      "type": "object",
+      "properties": {
+        "from": { "type": "string" },
+        "suggested_next": { "type": "array", "items": { "type": "string" } },
+        "pending_confirmation": { "type": "boolean" }
+      }
+    },
+    "Observability": {
+      "type": "object",
+      "properties": {
+        "router_latency_ms": { "type": "number" },
+        "memory_entries_loaded": { "type": "integer" }
+      }
+    }
+  }
+}
