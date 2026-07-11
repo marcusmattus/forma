@@ -31,6 +31,8 @@ export function BioDashboard() {
   const [loading, setLoading] = useState(true);
   const [voiceProcessing, setVoiceProcessing] = useState(false);
   const [spokenFeedback, setSpokenFeedback] = useState<string | null>(null);
+  const [followUpPrompt, setFollowUpPrompt] = useState<string | null>(null);
+  const [sessionId] = useState(() => `web_${Date.now()}`);
 
   const loadDashboard = async () => {
     setLoading(true);
@@ -49,18 +51,20 @@ export function BioDashboard() {
   const handleVoice = async (transcript: string) => {
     setVoiceProcessing(true);
     try {
-      const res = await fetch('/api/bio/insights', {
+      const res = await fetch('/api/bio/voice', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           clientId: 'demo_client',
           transcript,
+          sessionId,
           tier: 'pro',
         }),
       });
       const json = await res.json();
       if (json.document) setDocument(json.document);
-      setSpokenFeedback(json.spokenFeedback ?? null);
+      setSpokenFeedback(json.spokenFeedback ?? json.intentResult?.output?.spoken_response ?? null);
+      setFollowUpPrompt(json.intentResult?.output?.follow_up_prompt ?? json.intentResult?.clarification_prompt ?? null);
     } finally {
       setVoiceProcessing(false);
     }
@@ -149,6 +153,11 @@ export function BioDashboard() {
             <p className="text-sm italic" style={{ color: MOTIONOS_DESIGN_TOKENS.textDim }}>
               &ldquo;{spokenFeedback}&rdquo;
             </p>
+            {followUpPrompt && (
+              <p className="text-xs mt-3" style={{ color: MOTIONOS_DESIGN_TOKENS.accentCyan }}>
+                → {followUpPrompt}
+              </p>
+            )}
           </div>
         )}
 

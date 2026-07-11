@@ -1,0 +1,169 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://motionos.ai/schemas/wispr-intent/v1.0",
+  "title": "MotionOS_WisprIntent_v1.0",
+  "description": "Wispr voice intent schema for MotionOS AI Coach — Hermes agent routing",
+  "type": "object",
+  "required": ["system", "intent_id", "category", "pattern"],
+  "properties": {
+    "system": { "type": "string", "const": "MotionOS_WisprIntent_v1.0" },
+    "intent_id": { "$ref": "#/definitions/IntentId" },
+    "category": { "$ref": "#/definitions/IntentCategory" },
+    "pattern": { "$ref": "#/definitions/VoicePattern" },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "utterance": { "type": "string" },
+    "session_id": { "type": "string" },
+    "turn_index": { "type": "integer", "minimum": 0 },
+    "awaiting_clarification": { "type": "boolean" },
+    "clarification_prompt": { "type": "string" },
+    "extracted_entities": { "$ref": "#/definitions/ExtractedEntities" },
+    "hermes_routing": { "$ref": "#/definitions/HermesRouting" },
+    "output": { "$ref": "#/definitions/VoiceOutput" },
+    "multi_turn": { "$ref": "#/definitions/MultiTurnState" }
+  },
+  "definitions": {
+    "IntentId": {
+      "type": "string",
+      "enum": [
+        "im_sore",
+        "knee_hurts",
+        "back_tight",
+        "injury_location_followup",
+        "only_20_minutes",
+        "quick_session",
+        "traveling_this_week",
+        "hotel_workout",
+        "progress_check",
+        "how_am_i_doing",
+        "why_hrv_low",
+        "why_tired",
+        "what_to_eat",
+        "craving_carbs",
+        "log_sleep",
+        "log_weight",
+        "log_soreness",
+        "build_program",
+        "feeling_low_energy",
+        "proactive_recovery",
+        "confirm_adaptation",
+        "adjust_tomorrow",
+        "unknown"
+      ]
+    },
+    "IntentCategory": {
+      "type": "string",
+      "enum": [
+        "health_soreness",
+        "time_schedule",
+        "travel_environment",
+        "progress_check",
+        "nutrition",
+        "data_logging",
+        "program_creation",
+        "recovery_deep_dive",
+        "proactive_coaching",
+        "confirmation"
+      ]
+    },
+    "VoicePattern": {
+      "type": "string",
+      "enum": [
+        "status_update_adaptation",
+        "constraint_based_planning",
+        "progress_motivation",
+        "deep_query",
+        "proactive_coaching",
+        "multi_turn_clarification",
+        "hybrid_confirm"
+      ]
+    },
+    "ExtractedEntities": {
+      "type": "object",
+      "properties": {
+        "body_parts": { "type": "array", "items": { "type": "string" } },
+        "available_minutes": { "type": "integer" },
+        "sleep_hours": { "type": "number" },
+        "weight_kg": { "type": "number" },
+        "soreness_level": { "type": "integer", "minimum": 0, "maximum": 10 },
+        "location": { "type": "string", "enum": ["gym", "hotel", "home", "outdoor"] },
+        "program_duration_weeks": { "type": "integer" },
+        "confirmation": { "type": "boolean" }
+      }
+    },
+    "HermesRouting": {
+      "type": "object",
+      "properties": {
+        "supervisor": { "type": "string", "const": "BioModelingSupervisor" },
+        "triggered_agents": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "ingestion-normalization",
+              "digital-twin-modeler",
+              "predictive-analytics",
+              "recovery-adaptation",
+              "anomaly-risk-detection",
+              "insight-visualization",
+              "workout-programming",
+              "nutrition",
+              "habit-coach",
+              "progress-analyst",
+              "builder-studio"
+            ]
+          }
+        },
+        "downstream_actions": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "VoiceOutput": {
+      "type": "object",
+      "properties": {
+        "spoken_response": { "type": "string" },
+        "visual_updates": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["workout_card", "recovery_gauge", "adaptation_card", "dashboard", "nutrition_card", "builder_studio"]
+          }
+        },
+        "data_updates": { "type": "array", "items": { "type": "string" } },
+        "follow_up_prompt": { "type": "string" }
+      }
+    },
+    "MultiTurnState": {
+      "type": "object",
+      "properties": {
+        "active": { "type": "boolean" },
+        "pending_intent": { "$ref": "#/definitions/IntentId" },
+        "turns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "role": { "type": "string", "enum": ["user", "coach"] },
+              "text": { "type": "string" },
+              "timestamp": { "type": "string", "format": "date-time" }
+            }
+          }
+        },
+        "max_turns": { "type": "integer", "default": 5 }
+      }
+    },
+    "IntentDefinition": {
+      "type": "object",
+      "required": ["intent_id", "category", "pattern", "example_utterances", "hermes_routing"],
+      "properties": {
+        "intent_id": { "$ref": "#/definitions/IntentId" },
+        "category": { "$ref": "#/definitions/IntentCategory" },
+        "pattern": { "$ref": "#/definitions/VoicePattern" },
+        "example_utterances": { "type": "array", "items": { "type": "string" } },
+        "keywords": { "type": "array", "items": { "type": "string" } },
+        "requires_clarification": { "type": "boolean" },
+        "clarification_prompt": { "type": "string" },
+        "hermes_routing": { "$ref": "#/definitions/HermesRouting" },
+        "spoken_response_template": { "type": "string" }
+      }
+    }
+  }
+}

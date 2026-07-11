@@ -4,4 +4,7 @@ export {
   buildWisprVoiceLayer,
   wisprAdaptationsToRecommendations,
 } from './voice-layer';
-export { processWisprVoice } from './pipeline';
+export { detectIntentFromRegistry } from './intent-detector';
+export { INTENT_REGISTRY, getIntentDefinition, getIntentsByCategory } from './intent-registry';
+export { processVoiceTurn, generateProactivePrompt, getVoiceSession } from './conversation';
+export { processWisprVoice, getProactiveCoaching } from './pipeline';

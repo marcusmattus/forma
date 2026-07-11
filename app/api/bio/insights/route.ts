@@ -45,16 +45,19 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await processWisprVoice(
-      { clientId, transcript, sessionId: sessionId ?? `wispr_${Date.now()}` },
+      { clientId, transcript, sessionId: sessionId ?? `wispr_${Date.now()}`, tier: tier ?? 'pro' },
       tier ?? 'pro'
     );
 
     return NextResponse.json({
       success: true,
+      intentResult: result.intentResult,
       document: result.document,
       spokenFeedback: result.spokenFeedback,
       intent: result.intent,
       confidence: result.confidence,
+      awaitingClarification: result.awaitingClarification,
+      visualUpdates: result.visualUpdates,
       adaptations: result.document.adaptation_log,
       downstreamActions: result.document.downstream_actions,
       medicalDisclaimer: MEDICAL_DISCLAIMER,
