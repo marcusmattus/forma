@@ -61,6 +61,8 @@ export async function POST(request: NextRequest) {
       adaptations: result.document.adaptation_log,
       downstreamActions: result.document.downstream_actions,
       medicalDisclaimer: MEDICAL_DISCLAIMER,
+      // Backward-compatible fields from main branch consumers
+      actions: result.document.downstream_actions,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Wispr voice adaptation failed';

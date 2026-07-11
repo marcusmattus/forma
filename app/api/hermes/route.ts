@@ -63,7 +63,14 @@ export async function GET(request: NextRequest) {
       'anomaly-risk-detection',
       'insight-visualization',
     ],
-    peer_agents: ['workout-programming', 'nutrition', 'progress-analyst', 'habit-coach', 'builder-studio'],
+    peer_agents: [
+      'assessment',
+      'workout-programming',
+      'nutrition',
+      'progress-analyst',
+      'habit-coach',
+      'builder-studio',
+    ],
     intents: ['bio_sync', 'bio_ingest', 'voice_adapt', 'builder_insights', 'full_pipeline', 'multimodal'],
     modalities: ['voice', 'wearable', 'photo', 'video', 'manual', 'text', 'touch'],
     schemas: [
