@@ -4,6 +4,7 @@ import { FeaturesSection } from "@/components/features-section"
 import { TestimonialsSection } from "@/components/testimonials-section"
 import { WaitlistSection } from "@/components/waitlist-section"
 import { AlgorithmicCanvas } from "@/components/algorithmic-canvas"
+import { BioDashboard } from "@/components/bio-dashboard"
 import { Mic, Apple, Play } from "lucide-react"
 
 export default function Home() {
@@ -78,6 +79,8 @@ export default function Home() {
 
         </div>
       </section>
+
+      <BioDashboard />
 
       <FeaturesSection />
       
